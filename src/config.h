@@ -59,6 +59,7 @@ struct misc_config_s {
 	int enable_kiss_pt;	/* Enable pseudo terminal for KISS. */
 				/* Want this to be off by default because it hangs */
 				/* after a while if nothing is reading from other end. */
+    char kiss_pty_path[80];
 
 	char kiss_serial_port[20];
 				/* Serial port name for our end of the */
@@ -239,6 +240,7 @@ struct misc_config_s {
 
 #define DEFAULT_AGWPE_PORT 8000		/* Like everyone else. */
 #define DEFAULT_KISS_PORT 8001		/* Above plus 1. */
+#define DEFAULT_KISS_PTY_PATH "/tmp/kisstnc"
 
 
 #define DEFAULT_NULLMODEM "COM3"  	/* should be equiv. to /dev/ttyS2 on Cygwin */

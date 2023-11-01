@@ -876,6 +876,7 @@ void config_init (char *fname, struct audio_s *p_audio_config,
 
 	p_misc_config->enable_kiss_pt = 0;				/* -p option */
 	p_misc_config->kiss_copy = 0;
+	strlcpy (p_misc_config->kiss_pty_path, DEFAULT_KISS_PTY_PATH, sizeof(p_misc_config->kiss_pty_path));
 
 	p_misc_config->dns_sd_enabled = 1;
 
@@ -4780,6 +4781,20 @@ void config_init (char *fname, struct audio_s *p_audio_config,
 	    p_misc_config->kiss_copy = 1;
 	  }
 
+/*
+ * KISSPTY -- Enable kiss pty
+ */
+	  else if (strcasecmp(t, "KISSPTY") == 0) {
+		p_misc_config->enable_kiss_pt = 1;
+	    t = split(NULL,0);
+        fprintf(stderr, "got t = %s\n", t);
+        fprintf(stderr, "before kiss_pty_path=%s\n", p_misc_config->kiss_pty_path);
+	    if (t != NULL) {
+            fprintf(stderr, "if t is %s, why are we here?\n", t);
+            strlcpy(p_misc_config->kiss_pty_path, t, sizeof(p_misc_config->kiss_pty_path));
+        }
+        fprintf(stderr, "after kiss_pty_path=%s\n", p_misc_config->kiss_pty_path);
+	  }
 
 /*
  * DNSSD 		- Enable or disable (1/0) dns-sd, DNS Service Discovery announcements

@@ -198,6 +198,7 @@ int main (int argc, char *argv[])
 	int j;
 	char config_file[100];
 	int enable_pseudo_terminal = 0;
+    char kiss_pty_path[80];
 	struct digi_config_s digi_config;
 	struct cdigi_config_s cdigi_config;
 	struct igate_config_s igate_config;
@@ -242,6 +243,7 @@ int main (int argc, char *argv[])
 	char x_opt_mode = ' ';		/* "-x N" option for transmitting calibration tones. */
 	int x_opt_chan = 0;		/* Split into 2 parts.  Mode e.g.  m, a, and optional channel. */
 
+	strlcpy(kiss_pty_path, "", sizeof(kiss_pty_path));
 	strlcpy(l_opt_logdir, "", sizeof(l_opt_logdir));
 	strlcpy(L_opt_logfile, "", sizeof(L_opt_logfile));
 	strlcpy(P_opt, "", sizeof(P_opt));
@@ -395,7 +397,7 @@ int main (int argc, char *argv[])
 
 	  /* ':' following option character means arg is required. */
 
-          c = getopt_long(argc, argv, "hP:B:gjJD:U:c:px:r:b:n:d:q:t:ul:L:Sa:E:T:e:X:AI:i:",
+          c = getopt_long(argc, argv, "hP:B:gjJD:U:c:px:r:b:n:d:q:t:ul:L:Sa:E:T:e:X:AI:i:s:",
                         long_options, &option_index);
           if (c == -1)
             break;
@@ -434,6 +436,9 @@ int main (int argc, char *argv[])
 	    /* eventually when nothing is reading from other side. */
 
 	    enable_pseudo_terminal = 1;
+            break;
+          case 's':
+            strlcpy(kiss_pty_path, optarg, sizeof(kiss_pty_path));
             break;
 #endif
 
@@ -916,7 +921,13 @@ int main (int argc, char *argv[])
 	  strlcpy (misc_config.log_path, l_opt_logdir, sizeof(misc_config.log_path));
 	}
 
-	misc_config.enable_kiss_pt = enable_pseudo_terminal;
+    if (enable_pseudo_terminal) {
+        misc_config.enable_kiss_pt = 1;
+    }
+
+    if (strlen(kiss_pty_path) > 0) {
+        strlcpy(misc_config.kiss_pty_path, kiss_pty_path, sizeof(misc_config.kiss_pty_path));
+    }
 
 	if (strlen(input_file) > 0) {
 

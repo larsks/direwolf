@@ -143,14 +143,7 @@ static char pt_slave_name[32];		/* Pseudo terminal slave name  */
 					/* like /dev/pts/999 */
 
 
-/*
- * Symlink to pseudo terminal name which changes.
- */
-
-#define TMP_KISSTNC_SYMLINK "/tmp/kisstnc"
-
-
-static void * kisspt_listen_thread (void *arg);
+static void * kisspt_listen_thread (struct misc_config_s *mc);
 
 
 static int kisspt_debug = 0;		/* Print information flowing from and to client. */
@@ -187,7 +180,7 @@ void hex_dump (unsigned char *p, int len);
  *
  *--------------------------------------------------------------------*/
 
-static int kisspt_open_pt (void);
+static int kisspt_open_pt (struct misc_config_s *mc);
 
 
 void kisspt_init (struct misc_config_s *mc)
@@ -205,10 +198,10 @@ void kisspt_init (struct misc_config_s *mc)
 
 	if (mc->enable_kiss_pt) {
 
-	  pt_master_fd = kisspt_open_pt ();
+	  pt_master_fd = kisspt_open_pt (mc);
 
 	  if (pt_master_fd != -1) {
-	    e = pthread_create (&kiss_pterm_listen_tid, (pthread_attr_t*)NULL, kisspt_listen_thread, NULL);
+	    e = pthread_create (&kiss_pterm_listen_tid, (pthread_attr_t*)NULL, kisspt_listen_thread, mc);
 	    if (e != 0) {
 	      text_color_set(DW_COLOR_ERROR);
 	      perror("Could not create kiss listening thread for Linux pseudo terminal");
@@ -234,7 +227,7 @@ void kisspt_init (struct misc_config_s *mc)
  * Returns fd for master side of pseudo terminal or -1 for error.
  */
 
-static int kisspt_open_pt (void)
+static int kisspt_open_pt (struct misc_config_s *mc)
 {
 	int fd;
 	char *pts;
@@ -335,17 +328,17 @@ static int kisspt_open_pt (void)
  * does not need to change when the pseudo terminal name changes.
  */
 
-	unlink (TMP_KISSTNC_SYMLINK);
+	unlink (mc->kiss_pty_path);
 
 
 // TODO: Is this removed when application exits?
 
-	if (symlink (pt_slave_name, TMP_KISSTNC_SYMLINK) == 0) {
-	    dw_printf ("Created symlink %s -> %s\n", TMP_KISSTNC_SYMLINK, pt_slave_name);
+	if (symlink (pt_slave_name, mc->kiss_pty_path) == 0) {
+	    dw_printf ("Created symlink %s -> %s\n", mc->kiss_pty_path, pt_slave_name);
 	}
 	else {
 	    text_color_set(DW_COLOR_ERROR);
-	    dw_printf ("Failed to create symlink %s\n", TMP_KISSTNC_SYMLINK);	
+	    dw_printf ("Failed to create symlink %s\n", mc->kiss_pty_path);	
 	    perror ("");
 	}
 
@@ -474,7 +467,7 @@ void kisspt_send_rec_packet (int chan, int kiss_cmd, unsigned char *fbuf,  int f
  *--------------------------------------------------------------------*/
 
 
-static int kisspt_get (void)
+static int kisspt_get (struct misc_config_s *mc)
 {
 	unsigned char ch;
 
@@ -552,7 +545,7 @@ static int kisspt_get (void)
 	    close (pt_master_fd);
 
 	    pt_master_fd = -1;
-	    unlink (TMP_KISSTNC_SYMLINK);
+	    unlink (mc->kiss_pty_path);
 	    pthread_exit (NULL);
 	  }
 	}
@@ -579,7 +572,7 @@ static int kisspt_get (void)
  *
  *--------------------------------------------------------------------*/
 
-static void * kisspt_listen_thread (void *arg)
+static void * kisspt_listen_thread (struct misc_config_s *mc)
 {
 	unsigned char ch;
 			
@@ -590,7 +583,7 @@ static void * kisspt_listen_thread (void *arg)
 
 
 	while (1) {
-	  ch = kisspt_get();
+	  ch = kisspt_get(mc);
 	  kiss_rec_byte (&kf, ch, kisspt_debug, NULL, -1, kisspt_send_rec_packet);
 	}
 
