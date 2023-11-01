@@ -375,24 +375,6 @@ int main (int argc, char *argv[])
 	text_color_set(DW_COLOR_INFO);
 #endif
 
-// I've seen many references to people running this as root.
-// There is no reason to do that.
-// Ordinary users can access audio, gpio, etc. if they are in the correct groups.
-// Giving an applications permission to do things it does not need to do
-// is a huge security risk.
-
-#ifndef __WIN32__
-	if (getuid() == 0 || geteuid() == 0) {
-	    text_color_set(DW_COLOR_ERROR);
-	    for (int n=0; n<15; n++) {
-	      dw_printf ("\n");
-	      dw_printf ("Dire Wolf requires only privileges available to ordinary users.\n");
-	      dw_printf ("Running this as root is an unnecessary security risk.\n");
-	      //SLEEP_SEC(1);
-	    }
-	}
-#endif
-
 /*
  * Default location of configuration file is current directory.
  * Can be overridden by -c command line option.
@@ -746,6 +728,25 @@ int main (int argc, char *argv[])
             usage ();
           }
 	}  /* end while(1) for options */
+
+// I've seen many references to people running this as root.
+// There is no reason to do that.
+// Ordinary users can access audio, gpio, etc. if they are in the correct groups.
+// Giving an applications permission to do things it does not need to do
+// is a huge security risk.
+
+#ifndef __WIN32__
+	if (getuid() == 0 || geteuid() == 0) {
+	    text_color_set(DW_COLOR_ERROR);
+	    for (int n=0; n<15; n++) {
+	      dw_printf ("\n");
+	      dw_printf ("Dire Wolf requires only privileges available to ordinary users.\n");
+	      dw_printf ("Running this as root is an unnecessary security risk.\n");
+	      //SLEEP_SEC(1);
+	    }
+	}
+#endif
+
 
 	if (optind < argc) 
 	{
